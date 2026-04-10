@@ -9,12 +9,12 @@ requires-python = ">=3.11"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-asyncio_loop_scope = "session"
 testpaths = ["tests"]
 
 [tool.coverage.run]
 source = ["app"]
 omit = ["app/__init__.py"]
+concurrency = ["greenlet", "thread"]
 
 [tool.coverage.report]
 fail_under = 90
