@@ -655,6 +655,70 @@ TEST_DATABASE_URL="postgresql+asyncpg://postgres:password@localhost/test_jobtrac
 
 ---
 
+## Accessing the Database in VS Code
+
+Two extensions are needed:
+- **SQLTools** — the query interface
+- **SQLTools PostgreSQL/Cockroach Driver** — the database driver SQLTools uses to connect
+
+Install both from the Extensions panel (`Cmd+Shift+X`) by searching for each name.
+- both extensions are authored by Matheus Teixeira (publisher ID mtxr on the VS Code Marketplace)
+
+### Create a Connection
+
+1. Click the **SQLTools** icon in the Activity Bar (cylinder/database icon on the left sidebar)
+2. Click **Add New Connection**
+3. Select **PostgreSQL**
+4. Fill in the connection details:
+
+| Field | Value |
+|---|---|
+| Connection name | `job-tracker-dev` (or any label you want) |
+| Host | `localhost` |
+| Port | `5432` |
+| Database | `jobtracker_dev` |
+| Username | `postgres` |
+| Password | `postgres` |
+
+5. Click **Test Connection** — it should show a success message (the Docker stack must be running)
+6. Click **Save Connection**
+
+> The stack must be running (`docker compose up`) before you can connect. SQLTools connects to the port mapped to your host machine (5432), not inside the container.
+
+### Running Queries
+
+1. Click your saved connection in the SQLTools sidebar to open it
+2. Click the **New SQL File** icon (or right-click the connection → **New SQL File**) — this creates a `*.session.sql` scratch file
+3. Type a query and press `Cmd+Enter` (or click **Run**) to execute it:
+
+```sql
+-- See all tables
+SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';
+
+-- See all users
+SELECT id, email, full_name, created_at FROM users;
+
+-- See all applications for a specific user
+SELECT id, company_name, job_title, status, applied_date
+FROM applications
+WHERE user_id = '<paste-user-id-here>'
+ORDER BY created_at DESC;
+
+-- See all applications with their contacts
+SELECT a.company_name, a.job_title, c.name AS contact_name, c.email
+FROM applications a
+LEFT JOIN contacts c ON c.application_id = a.id
+WHERE a.user_id = '<paste-user-id-here>';
+```
+
+### Notes
+
+- The `*.session.sql` files SQLTools creates are gitignored — they're local scratch files and won't be committed
+- To switch to the staging database, create a second connection pointing to `jobtracker_staging` (same host/port/credentials, different database name)
+- If you get a "connection refused" error, make sure `docker compose up` is running
+
+---
+
 ## CI/CD Pipeline (`.github/workflows/ci.yml`)
 
 The pipeline triggers on all three protected branches. Staging is local, so CI only has one deployment job — production — which is a placeholder until a hosting platform is chosen.

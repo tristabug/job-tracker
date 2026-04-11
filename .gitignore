@@ -10,3 +10,4 @@ htmlcov/
 .pytest_cache/
 .vscode/
 USAGE.md
+*.session.sql
