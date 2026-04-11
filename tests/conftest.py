@@ -12,7 +12,16 @@ TEST_DATABASE_URL = os.getenv(
 
 connect_args = {"check_same_thread": False} if "sqlite" in TEST_DATABASE_URL else {}
 
-engine_test = create_async_engine(TEST_DATABASE_URL, connect_args=connect_args, echo=False)
+if "sqlite" in TEST_DATABASE_URL:
+    engine_test = create_async_engine(TEST_DATABASE_URL, connect_args=connect_args, echo=False)
+else:
+    engine_test = create_async_engine(
+        TEST_DATABASE_URL,
+        echo=False,
+        pool_pre_ping=True,
+        pool_size=5,
+        max_overflow=10,
+    )
 TestSessionLocal = async_sessionmaker(engine_test, class_=AsyncSession, expire_on_commit=False)
 
 
@@ -27,8 +36,12 @@ async def setup_tables():
 
 
 @pytest_asyncio.fixture(autouse=True)
-async def clear_tables():
+async def clear_tables(db):
     yield
+    try:
+        await db.rollback()
+    except Exception:
+        pass
     async with engine_test.begin() as conn:
         for table in reversed(Base.metadata.sorted_tables):
             await conn.execute(table.delete())
