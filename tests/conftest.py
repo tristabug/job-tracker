@@ -18,7 +18,7 @@ else:
     engine_test = create_async_engine(
         TEST_DATABASE_URL,
         echo=False,
-        pool_pre_ping=True,
+        pool_pre_ping=False,
         pool_size=5,
         max_overflow=10,
     )
@@ -42,9 +42,12 @@ async def clear_tables(db):
         await db.rollback()
     except Exception:
         pass
-    async with engine_test.begin() as conn:
-        for table in reversed(Base.metadata.sorted_tables):
-            await conn.execute(table.delete())
+    try:
+        async with engine_test.begin() as conn:
+            for table in reversed(Base.metadata.sorted_tables):
+                await conn.execute(table.delete())
+    except Exception:
+        pass
 
 
 @pytest_asyncio.fixture
