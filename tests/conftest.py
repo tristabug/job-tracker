@@ -2,6 +2,7 @@ import os
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.pool import NullPool
 from app.main import app
 from app.database import Base, get_db
 
@@ -18,9 +19,7 @@ else:
     engine_test = create_async_engine(
         TEST_DATABASE_URL,
         echo=False,
-        pool_pre_ping=False,
-        pool_size=5,
-        max_overflow=10,
+        poolclass=NullPool,
     )
 TestSessionLocal = async_sessionmaker(engine_test, class_=AsyncSession, expire_on_commit=False)
 
