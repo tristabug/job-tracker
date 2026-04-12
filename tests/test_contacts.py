@@ -16,7 +16,12 @@ BASE_CONTACT_PAYLOAD = {
 @pytest_asyncio.fixture
 async def application(client, auth_headers):
     response = await client.post("/applications", json=BASE_APP_PAYLOAD, headers=auth_headers)
-    return response.json()
+    app_data = response.json()
+    yield app_data
+    try:
+        await client.delete(f"/applications/{app_data['id']}", headers=auth_headers)
+    except Exception:
+        pass
 
 
 @pytest_asyncio.fixture
@@ -26,7 +31,15 @@ async def contact(client, auth_headers, application):
         json=BASE_CONTACT_PAYLOAD,
         headers=auth_headers,
     )
-    return response.json()
+    contact_data = response.json()
+    yield contact_data
+    try:
+        await client.delete(
+            f"/applications/{application['id']}/contacts/{contact_data['id']}",
+            headers=auth_headers,
+        )
+    except Exception:
+        pass
 
 
 # ── Create ────────────────────────────────────────────────────────────────────
