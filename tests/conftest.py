@@ -1,7 +1,10 @@
+import asyncio
 import os
+import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.pool import NullPool
 from app.main import app
 from app.database import Base, get_db
 
@@ -12,32 +15,52 @@ TEST_DATABASE_URL = os.getenv(
 
 connect_args = {"check_same_thread": False} if "sqlite" in TEST_DATABASE_URL else {}
 
-engine_test = create_async_engine(TEST_DATABASE_URL, connect_args=connect_args, echo=False)
+if "sqlite" in TEST_DATABASE_URL:
+    engine_test = create_async_engine(TEST_DATABASE_URL, connect_args=connect_args, echo=False)
+else:
+    engine_test = create_async_engine(
+        TEST_DATABASE_URL,
+        echo=False,
+        poolclass=NullPool,
+    )
 TestSessionLocal = async_sessionmaker(engine_test, class_=AsyncSession, expire_on_commit=False)
 
 
-@pytest_asyncio.fixture(scope="session", autouse=True)
-async def setup_tables():
-    async with engine_test.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+@pytest.fixture(scope="session", autouse=True)
+def setup_tables():
+    async def create():
+        async with engine_test.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+
+    async def drop():
+        async with engine_test.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+        await engine_test.dispose()
+
+    asyncio.run(create())
     yield
-    async with engine_test.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-    await engine_test.dispose()
+    asyncio.run(drop())
 
 
 @pytest_asyncio.fixture(autouse=True)
 async def clear_tables():
     yield
-    async with engine_test.begin() as conn:
-        for table in reversed(Base.metadata.sorted_tables):
-            await conn.execute(table.delete())
+    try:
+        async with engine_test.begin() as conn:
+            for table in reversed(Base.metadata.sorted_tables):
+                await conn.execute(table.delete())
+    except Exception:
+        pass
 
 
 @pytest_asyncio.fixture
 async def db():
     async with TestSessionLocal() as session:
         yield session
+        try:
+            await session.rollback()
+        except Exception:
+            pass
 
 
 @pytest_asyncio.fixture
