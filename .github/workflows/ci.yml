@@ -37,7 +37,7 @@ jobs:
       - name: Run tests with coverage
         run: pytest --cov=app --cov-report=xml --cov-fail-under=90
         env:
-          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost/jobtracker
+          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost/test_jobtracker
           TEST_DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost/test_jobtracker
           SECRET_KEY: ci-secret-key
 
