@@ -36,12 +36,8 @@ async def setup_tables():
 
 
 @pytest_asyncio.fixture(autouse=True)
-async def clear_tables(db):
+async def clear_tables():
     yield
-    try:
-        await db.rollback()
-    except Exception:
-        pass
     try:
         async with engine_test.begin() as conn:
             for table in reversed(Base.metadata.sorted_tables):
@@ -54,6 +50,10 @@ async def clear_tables(db):
 async def db():
     async with TestSessionLocal() as session:
         yield session
+        try:
+            await session.rollback()
+        except Exception:
+            pass
 
 
 @pytest_asyncio.fixture
