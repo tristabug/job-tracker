@@ -1,4 +1,6 @@
+import asyncio
 import os
+import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
@@ -24,14 +26,20 @@ else:
 TestSessionLocal = async_sessionmaker(engine_test, class_=AsyncSession, expire_on_commit=False)
 
 
-@pytest_asyncio.fixture(scope="session", autouse=True)
-async def setup_tables():
-    async with engine_test.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+@pytest.fixture(scope="session", autouse=True)
+def setup_tables():
+    async def create():
+        async with engine_test.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+
+    async def drop():
+        async with engine_test.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+        await engine_test.dispose()
+
+    asyncio.run(create())
     yield
-    async with engine_test.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-    await engine_test.dispose()
+    asyncio.run(drop())
 
 
 @pytest_asyncio.fixture(autouse=True)
