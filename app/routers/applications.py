@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
-from app.dependencies import get_current_user
+from app.dependencies import get_current_user, require_write_access
 from app.models.user import User
 from app.models.application import ApplicationStatus
 from app.schemas.application import (
@@ -19,7 +19,7 @@ router = APIRouter(prefix="/applications", tags=["applications"])
 async def create_application(
     data: ApplicationCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_write_access),
 ):
     return await application_service.create_application(db, current_user.id, data)
 
@@ -64,7 +64,7 @@ async def update_application(
     application_id: str,
     data: ApplicationUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_write_access),
 ):
     application = await application_service.update_application(
         db, application_id, current_user.id, data
@@ -79,7 +79,7 @@ async def patch_application(
     application_id: str,
     data: ApplicationUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_write_access),
 ):
     application = await application_service.update_application(
         db, application_id, current_user.id, data
@@ -93,7 +93,7 @@ async def patch_application(
 async def delete_application(
     application_id: str,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_write_access),
 ):
     deleted = await application_service.delete_application(db, application_id, current_user.id)
     if not deleted:

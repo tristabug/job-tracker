@@ -3,10 +3,12 @@ import os
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.pool import NullPool
 from app.main import app
 from app.database import Base, get_db
+from app.models.user import User, UserRole
 
 TEST_DATABASE_URL = os.getenv(
     "TEST_DATABASE_URL",
@@ -99,6 +101,25 @@ async def second_auth_headers(client):
     response = await client.post("/auth/login", data={
         "username": "seconduser@example.com",
         "password": "testpassword123",
+    })
+    token = response.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest_asyncio.fixture
+async def demo_auth_headers(client, db):
+    await client.post("/auth/register", json={
+        "email": "demo@example.com",
+        "password": "demopassword123",
+        "full_name": "Demo User",
+    })
+    user = (await db.execute(select(User).where(User.email == "demo@example.com"))).scalar_one()
+    user.role = UserRole.DEMO
+    await db.commit()
+
+    response = await client.post("/auth/login", data={
+        "username": "demo@example.com",
+        "password": "demopassword123",
     })
     token = response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
