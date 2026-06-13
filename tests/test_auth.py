@@ -85,3 +85,27 @@ async def test_protected_route_with_invalid_token(client):
         headers={"Authorization": "Bearer invalidtoken"},
     )
     assert response.status_code == 401
+
+
+async def test_me_returns_current_user(client, auth_headers):
+    response = await client.get("/auth/me", headers=auth_headers)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["email"] == "testuser@example.com"
+    assert data["full_name"] == "Test User"
+    assert data["role"] == "user"
+    assert "id" in data
+    assert "hashed_password" not in data
+
+
+async def test_me_without_token(client):
+    response = await client.get("/auth/me")
+    assert response.status_code == 401
+
+
+async def test_me_with_invalid_token(client):
+    response = await client.get(
+        "/auth/me",
+        headers={"Authorization": "Bearer invalidtoken"},
+    )
+    assert response.status_code == 401

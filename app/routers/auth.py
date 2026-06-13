@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
+from app.dependencies import get_current_user
+from app.models.user import User
 from app.schemas.token import Token
 from app.schemas.user import UserCreate, UserResponse
 from app.services.auth import (
@@ -40,3 +42,8 @@ async def login(
         )
     token = create_access_token(data={"sub": user.id})
     return Token(access_token=token, token_type="bearer")
+
+
+@router.get("/me", response_model=UserResponse)
+async def read_current_user(current_user: User = Depends(get_current_user)):
+    return current_user
