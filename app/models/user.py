@@ -1,8 +1,15 @@
 import uuid
+import enum
 from datetime import datetime, timezone
-from sqlalchemy import String, DateTime
+from sqlalchemy import String, DateTime, Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
+
+
+class UserRole(str, enum.Enum):
+    DEMO = "demo"
+    USER = "user"
+    ADMIN = "admin"
 
 
 class User(Base):
@@ -14,6 +21,11 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     full_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    role: Mapped[UserRole] = mapped_column(
+        SAEnum(UserRole, native_enum=False),
+        nullable=False,
+        default=UserRole.USER,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
