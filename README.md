@@ -19,6 +19,7 @@
 - [Usage](#usage)
 - [Running Tests](#running-tests)
 - [Deployment](#deployment)
+- [Related Projects](#related-projects)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -37,6 +38,7 @@ Job Application Tracker is a production-quality REST API for managing a job sear
 - **Upcoming follow-ups endpoint**: queries applications by follow-up date window so nothing falls through the cracks
 - **Nested contact management**: attach multiple contacts (recruiters, hiring managers) to any application
 - **JWT authentication**: all routes protected; user data is fully isolated at the service layer
+- **Role-based access**: `demo`, `user`, and `admin` roles via `GET /auth/me`; the shared `demo` account is enforced as read-only (403 on any write) so portfolio visitors can explore safely
 - **Cascading deletes**: deleting an application automatically removes all its contacts
 - **Containerized with Docker**: multi-stage Dockerfile + Docker Compose spins up the full stack in one command with no local PostgreSQL required
 - **90%+ test coverage**: enforced in CI via pytest-cov; PRs that drop below threshold fail the pipeline
@@ -94,6 +96,8 @@ Edit `.env` and fill in your values. All required keys are listed below.
 | `SECRET_KEY` | Secret key used to sign JWT tokens — use a long random string in production | `change-me-to-a-long-random-string` |
 | `ALGORITHM` | JWT signing algorithm | `HS256` |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | How long access tokens stay valid (in minutes) | `30` |
+| `DEMO_EMAIL` | Login email for the shared, read-only demo account (see [Demo Account](#demo-account)) | `demo@jobtracker.dev` |
+| `DEMO_PASSWORD` | Login password for the shared, read-only demo account | `DemoPass123!` |
 
 > **Never commit real secrets.** `.env` is gitignored and should never be pushed to the repository.
 
@@ -110,6 +114,14 @@ The API will be available at `http://localhost:8000`. The postgres container sta
 ```bash
 docker compose exec api alembic upgrade head
 ```
+
+### 5. Seed the demo account (optional)
+
+```bash
+docker compose exec api python -m scripts.seed_demo
+```
+
+Creates the shared, read-only `demo` account (see [Demo Account](#demo-account)) pre-populated with sample applications and contacts. Safe to re-run — it does nothing if the account is already seeded.
 
 ### Switching Environments
 
@@ -147,6 +159,7 @@ docker compose restart api          # reload after .env changes
 ```
 POST /auth/register     Register a new user
 POST /auth/login        Login (OAuth2 form), returns JWT
+GET  /auth/me           Get the current authenticated user (includes role)
 ```
 
 #### Applications
@@ -178,6 +191,8 @@ GET    /applications/{app_id}/contacts/{id}      Get a contact
 PUT    /applications/{app_id}/contacts/{id}      Update a contact
 DELETE /applications/{app_id}/contacts/{id}      Delete a contact
 ```
+
+> **Note:** All `POST`/`PUT`/`PATCH`/`DELETE` routes above return `403 Forbidden` for users with the `demo` role. See [Demo Account](#demo-account).
 
 
 ### Using Swagger UI
@@ -262,6 +277,27 @@ curl http://localhost:8000/applications \
 The variable lasts for the duration of your terminal session. If you close the terminal or open a new one, you'll need to log in and set it again.
 
 
+### Demo Account
+
+A shared, read-only account is available for exploring the API without registering. Credentials come from the `DEMO_EMAIL` / `DEMO_PASSWORD` environment variables (defaults: `demo@jobtracker.dev` / `DemoPass123!`).
+
+```bash
+curl -X POST http://localhost:8000/auth/login \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "username=demo@jobtracker.dev&password=DemoPass123!"
+```
+
+Log in with these credentials to browse a pre-populated set of applications and contacts. `GET /auth/me` returns `"role": "demo"` for this account, and any write request (`POST`/`PUT`/`PATCH`/`DELETE`) returns `403 Forbidden` — read-only access is enforced server-side via the `require_write_access` dependency, regardless of what a client UI allows.
+
+To create or refresh the demo account's sample data:
+
+```bash
+docker compose exec api python -m scripts.seed_demo
+```
+
+The script is idempotent: it only seeds sample applications/contacts if the account doesn't already have any, and corrects the account's `role` to `demo` if it was registered as a normal user first.
+
+
 ### Accessing the Database in VS Code
 
 Install the **SQLTools** and **SQLTools PostgreSQL/Cockroach Driver** extensions (both by Matheus Teixeira). Create a connection pointing to `localhost:5432`, database `jobtracker_dev`, username and password both `postgres`. The Docker stack must be running before connecting. To query staging, create a second connection pointing to `jobtracker_staging`.
@@ -308,6 +344,11 @@ The `test` job runs pytest against a PostgreSQL service container and enforces t
 | Test | (any) | `jobtracker_test` — wiped after every run |
 
 Promotion flow: `feature-branch → dev → staging → main`. No direct pushes to `main` or `staging` — all changes go through PRs with the `test` CI check required to pass.
+
+
+## Related Projects
+
+[`job-tracker-ui`](https://github.com/SaraDoesIt/job-tracker-ui) is a Flask front end that consumes this API. [`API_CONTRACT_CHECKLIST.md`](./API_CONTRACT_CHECKLIST.md) documents the parts of this API's contract (auth, roles, applications, contacts, error codes, demo account) that the UI depends on — update it alongside any breaking API change.
 
 
 ## Contributing
