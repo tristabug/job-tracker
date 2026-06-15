@@ -28,7 +28,8 @@
 
 Job Application Tracker is a production-quality REST API for managing a job search. It lets users log job applications, track status changes through the hiring pipeline, attach recruiter and hiring manager contacts to each application, and surface upcoming follow-up dates — all behind JWT authentication so each user sees only their own data.
 
-<!-- TODO: add link to live demo -->
+**Live:** [API docs](https://jobtracker-api.saraeclark.com/docs) · [job-tracker-ui demo](https://jobtracker.saraeclark.com)
+
 <!-- TODO: add screenshots -->
 
 
@@ -320,7 +321,7 @@ Coverage threshold is enforced at **90%** in CI. PRs that drop below this will f
 
 ## Deployment
 
-> **Note:** This project is not currently deployed to a hosting platform. The steps below reflect the intended deployment setup and will be updated when a hosting target is added.
+The API is deployed at **https://jobtracker-api.saraeclark.com** (`/docs` for interactive API docs), running on `main`. [`job-tracker-ui`](https://github.com/SaraDoesIt/job-tracker-ui) is deployed alongside it at **https://jobtracker.saraeclark.com**.
 
 ### CI/CD Pipeline
 
