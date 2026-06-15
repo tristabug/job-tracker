@@ -48,26 +48,12 @@ jobs:
 
   deploy-production:
     needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    environment: production
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: [self-hosted, sara-server]
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Build and tag Docker image
+      - name: Deploy
         run: |
-          docker build \
-            -t job-tracker-api:${{ github.sha }} \
-            -t job-tracker-api:latest .
-      # Add your hosting platform deploy step here when ready.
-      # Optional: push to GitHub Container Registry (GHCR)
-      # - uses: docker/login-action@v3
-      #   with:
-      #     registry: ghcr.io
-      #     username: ${{ github.actor }}
-      #     password: ${{ secrets.GITHUB_TOKEN }}
-      # - run: |
-      #     docker tag job-tracker-api:${{ github.sha }} ghcr.io/${{ github.repository }}:${{ github.sha }}
-      #     docker tag job-tracker-api:latest ghcr.io/${{ github.repository }}:latest
-      #     docker push ghcr.io/${{ github.repository }} --all-tags
+          cd ~/apps/job-tracker
+          git pull
+          docker compose -f docker-compose.yml up --build -d
