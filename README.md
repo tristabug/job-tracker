@@ -2,11 +2,11 @@
 
 > A REST API for tracking job applications, contacts, statuses, and follow-up dates — built with Python, FastAPI, PostgreSQL, and Docker.
 
-![Build Status](https://img.shields.io/github/actions/workflow/status/SaraDoesIt/job-tracker/ci.yml?branch=main)
+![Build Status](https://img.shields.io/github/actions/workflow/status/tristabug/job-tracker/ci.yml?branch=main)
 ![Coverage](https://img.shields.io/badge/coverage-90%25+-brightgreen) <!-- TODO: make coverage dynamic -->
-![License](https://img.shields.io/github/license/SaraDoesIt/job-tracker)
+![License](https://img.shields.io/github/license/tristabug/job-tracker)
 
-[Report a Bug](https://github.com/SaraDoesIt/job-tracker/issues) · [Request a Feature](https://github.com/SaraDoesIt/job-tracker/issues)
+[Report a Bug](https://github.com/tristabug/job-tracker/issues) · [Request a Feature](https://github.com/tristabug/job-tracker/issues)
 
 
 ## Table of Contents
@@ -72,12 +72,12 @@ Job Application Tracker is a production-quality REST API for managing a job sear
 
 **Option A — clone with Git:**
 ```bash
-git clone https://github.com/SaraDoesIt/job-tracker.git
+git clone https://github.com/tristabug/job-tracker.git
 cd job-tracker
 ```
 
 **Option B — download as ZIP (no Git required):**
-1. Go to `https://github.com/SaraDoesIt/job-tracker`
+1. Go to `https://github.com/tristabug/job-tracker`
 2. Click **Code → Download ZIP**
 3. Unzip the file and open a terminal in the project folder
 
@@ -321,7 +321,7 @@ Coverage threshold is enforced at **90%** in CI. PRs that drop below this will f
 
 ## Deployment
 
-The API is deployed at **https://jobtracker-api.saraeclark.com** (`/docs` for interactive API docs), running on `main`. [`job-tracker-ui`](https://github.com/SaraDoesIt/job-tracker-ui) is deployed alongside it at **https://jobtracker.saraeclark.com**.
+The API is deployed at **https://jobtracker-api.saraeclark.com** (`/docs` for interactive API docs), running on `main`. [`job-tracker-ui`](https://github.com/tristabug/job-tracker-ui) is deployed alongside it at **https://jobtracker.saraeclark.com**.
 
 ### CI/CD Pipeline
 
@@ -337,7 +337,7 @@ The `test` job runs pytest against a PostgreSQL service container and enforces t
 
 > **Database migrations are not automated.** If a merged change includes a new Alembic migration, run `docker compose exec api alembic upgrade head` on sara-server by hand after the deploy completes.
 
-[`job-tracker-ui`](https://github.com/SaraDoesIt/job-tracker-ui) follows the same `dev → staging → main` promotion flow and is deployed alongside this API on sara-server via the same pattern.
+[`job-tracker-ui`](https://github.com/tristabug/job-tracker-ui) follows the same `dev → staging → main` promotion flow and is deployed alongside this API on sara-server via the same pattern.
 
 ### Branch & Environment Strategy
 
@@ -353,7 +353,7 @@ Promotion flow: `feature-branch → dev → staging → main`. No direct pushes 
 
 ## Related Projects
 
-[`job-tracker-ui`](https://github.com/SaraDoesIt/job-tracker-ui) is a Flask front end that consumes this API. [`API_CONTRACT_CHECKLIST.md`](./API_CONTRACT_CHECKLIST.md) documents the parts of this API's contract (auth, roles, applications, contacts, error codes, demo account) that the UI depends on — update it alongside any breaking API change.
+[`job-tracker-ui`](https://github.com/tristabug/job-tracker-ui) is a Flask front end that consumes this API. [`API_CONTRACT_CHECKLIST.md`](./API_CONTRACT_CHECKLIST.md) documents the parts of this API's contract (auth, roles, applications, contacts, error codes, demo account) that the UI depends on — update it alongside any breaking API change.
 
 
 ## Contributing
@@ -387,4 +387,4 @@ chore: update dependencies
 
 Distributed under the **MIT License**. See [LICENSE](./LICENSE) for details.
 
-*Built and maintained by [SaraDoesIt](https://github.com/SaraDoesIt)*
+*Built and maintained by [tristabug](https://github.com/tristabug)*
