@@ -330,10 +330,14 @@ The pipeline triggers on pushes and pull requests to all three protected branche
 ```
 dev push     → test
 staging push → test
-main push    → test → build Docker image
+main push    → test → deploy-production
 ```
 
-The `test` job runs pytest against a PostgreSQL service container and enforces the 90% coverage threshold. The `deploy-production` job builds and tags the Docker image — add your hosting platform's push step when a deployment target is chosen.
+The `test` job runs pytest against a PostgreSQL service container and enforces the 90% coverage threshold. The `deploy-production` job runs on a self-hosted runner on sara-server: it pulls the latest `main` into `~/apps/job-tracker` and runs `docker compose -f docker-compose.yml up --build -d`, redeploying the API automatically.
+
+> **Database migrations are not automated.** If a merged change includes a new Alembic migration, run `docker compose exec api alembic upgrade head` on sara-server by hand after the deploy completes.
+
+[`job-tracker-ui`](https://github.com/SaraDoesIt/job-tracker-ui) follows the same `dev → staging → main` promotion flow and is deployed alongside this API on sara-server via the same pattern.
 
 ### Branch & Environment Strategy
 
