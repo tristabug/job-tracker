@@ -1,6 +1,6 @@
 # API Contract Checklist
 
-This file documents the parts of the `job-tracker` API contract that [`job-tracker-ui`](https://github.com/SaraDoesIt/job-tracker-ui) (a separate Flask front end) depends on.
+This file documents the parts of the `job-tracker` API contract that [`job-tracker-ui`](https://github.com/tristabug/job-tracker-ui) (a separate Flask front end) depends on.
 
 **Process:** when a PR changes any endpoint, request/response field, status code, or role behavior listed below, update this file in the same PR and note in the PR description whether `job-tracker-ui` needs a corresponding change.
 
@@ -150,4 +150,4 @@ Query params:
 - A shared account with `role == "demo"`, enforced as **read-only** server-side: any `POST`/`PUT`/`PATCH`/`DELETE` to `/applications` or nested `/contacts` returns `403`.
 - Credentials come from `DEMO_EMAIL` / `DEMO_PASSWORD` env vars (defaults: `demo@jobtracker.dev` / `DemoPass123!`).
 - Seeded via `python -m scripts.seed_demo` (idempotent) with 6 sample applications — one per `status` value — and a few sample contacts.
-- `job-tracker-ui`'s planned `/demo` route logs in with these credentials directly so visitors can explore without registering.
+- `job-tracker-ui`'s `/demo` route logs in with these credentials directly so visitors can explore without registering.
